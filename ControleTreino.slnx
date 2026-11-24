@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="ControleTreinoApi.Tests/ControleTreinoApi.Tests.csproj" />
   <Project Path="ControleTreinoApi/ControleTreinoApi.csproj" />
-  <Project Path="ControleTreinos.Tests/ControleTreinos.Tests.csproj" />
 </Solution>
