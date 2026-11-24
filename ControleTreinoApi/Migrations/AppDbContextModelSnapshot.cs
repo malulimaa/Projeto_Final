@@ -147,7 +147,8 @@ namespace ControleTreinoApi.Migrations
 
                     b.HasIndex("ExercicioId");
 
-                    b.HasIndex("TreinoId");
+                    b.HasIndex("TreinoId", "Ordem")
+                        .IsUnique();
 
                     b.ToTable("TreinoItems");
                 });
@@ -160,6 +161,7 @@ namespace ControleTreinoApi.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Nome")
@@ -172,6 +174,9 @@ namespace ControleTreinoApi.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Usuarios");
                 });
@@ -192,7 +197,7 @@ namespace ControleTreinoApi.Migrations
                     b.HasOne("ControleTreinoApi.Models.Exercicio", "Exercicio")
                         .WithMany()
                         .HasForeignKey("ExercicioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ControleTreinoApi.Models.Sessao", "Sessao")
@@ -210,7 +215,8 @@ namespace ControleTreinoApi.Migrations
                 {
                     b.HasOne("ControleTreinoApi.Models.Treino", "Treino")
                         .WithMany()
-                        .HasForeignKey("TreinoId");
+                        .HasForeignKey("TreinoId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ControleTreinoApi.Models.Usuario", "Usuario")
                         .WithMany()
@@ -239,7 +245,7 @@ namespace ControleTreinoApi.Migrations
                     b.HasOne("ControleTreinoApi.Models.Exercicio", "Exercicio")
                         .WithMany()
                         .HasForeignKey("ExercicioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ControleTreinoApi.Models.Treino", "Treino")
