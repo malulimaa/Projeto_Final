@@ -12,6 +12,9 @@ public class UsuarioService(
     IPasswordHasher<Usuario> hasher,
     ITokenService tokenService) : IUsuarioService
 {
+    private static readonly Usuario UsuarioFicticio = new() {Nome = "-", Email = "-", SenhaHash = "-"};
+    private static readonly string HashFicticio = new PasswordHasher<Usuario>().HashPassword(UsuarioFicticio, Guid.NewGuid().ToString("N"));
+
     public async Task<UsuarioResponse> CadastrarAsync(CadastroRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
@@ -28,14 +31,13 @@ public class UsuarioService(
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        var email = request.Email.Trim().ToLowerInvariant();   // mesma normalização do cadastro
+        var email = request.Email.Trim().ToLowerInvariant();
 
         var usuario = await repository.ObterPorEmailAsync(email);
-        if (usuario is null)
-            throw new CredenciaisInvalidasException();
 
-        var resultado = hasher.VerifyHashedPassword(usuario, usuario.SenhaHash, request.Senha);
-        if (resultado == PasswordVerificationResult.Failed)
+        var resultado = hasher.VerifyHashedPassword(usuario ?? UsuarioFicticio, usuario?.SenhaHash ?? HashFicticio, request.Senha);
+        
+        if (usuario is null || resultado == PasswordVerificationResult.Failed)
             throw new CredenciaisInvalidasException();
 
         return new LoginResponse(tokenService.Generate(usuario));
