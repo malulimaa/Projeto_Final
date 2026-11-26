@@ -1,7 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using ControleTreinoApi.Models;
+using ControleTreinoApi.Settings;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JwtBearer.Services;
@@ -11,34 +12,24 @@ public interface ITokenService
     string Generate(Usuario usuario);
 }
 
-public class TokenService(IConfiguration configuration) : ITokenService
+public class TokenService(IOptions<JwtOptions> options) : ITokenService
 {
+    private readonly JwtOptions jwt = options.Value;
     public string Generate(Usuario usuario)
     {
-        var chave = configuration["Jwt:Key"]
-            ?? throw new InvalidOperationException("Jwt:Key não está configurada (user-secrets).");
 
-        var bytes = Encoding.UTF8.GetBytes(chave);
-        if (bytes.Length < 32)
-            throw new InvalidOperationException("Jwt:Key deve ter pelo menos 32 caracteres.");
-
-        var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(bytes),
-            SecurityAlgorithms.HmacSha256Signature);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
+        var descriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new Claim[]
+            Subject = new ClaimsIdentity(new Claim []
             {
-                new (JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
-                new (JwtRegisteredClaimNames.Email, usuario.Email)
+                new(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
+                new(JwtRegisteredClaimNames.Email, usuario.Email)
             }),
-            Expires = DateTime.UtcNow.AddHours(2),
-            SigningCredentials = credentials,
+            Expires = DateTime.UtcNow.AddHours(jwt.ExpiraEmHoras),
+            SigningCredentials = new SigningCredentials(jwt.CriarChave(), SecurityAlgorithms.HmacSha256)
         };
 
         var handler = new JwtSecurityTokenHandler();
-        var token = handler.CreateToken(tokenDescriptor);
-        return handler.WriteToken(token);
+        return handler.WriteToken(handler.CreateToken(descriptor));
     }
 }

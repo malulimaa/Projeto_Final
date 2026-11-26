@@ -1,13 +1,11 @@
-using System.Text;
 using ControleTreinoApi.Data;
+using ControleTreinoApi.Extensions;
 using ControleTreinoApi.Models;
 using ControleTreinoApi.Repositories;
 using ControleTreinoApi.Services;
 using JwtBearer.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,8 +16,11 @@ builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("A connection string DefaultConnection não foi configurada.");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(options => 
+    options.UseSqlite(connectionString));
+
 
 // Services
 builder.Services.AddScoped<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
@@ -28,24 +29,7 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // Autenticação por token
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("A chave Jwt:Key não foi configurada (user-secrets).");
-
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
-
-builder.Services.AddAuthorization();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -63,7 +47,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        Description = "Cole apenas o token, sem a palavra Bearer."
+        Description = "Insira o Token."
     });
 
     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
