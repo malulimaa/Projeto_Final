@@ -1,4 +1,5 @@
 using ControleTreinoApi.Data;
+using ControleTreinoApi.Exceptions;
 using ControleTreinoApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,8 +22,23 @@ public class UsuarioRepository : IUsuarioRepository
     public async Task<Usuario> AdicionarAsync(Usuario usuario)
     {
         _context.Usuarios.Add(usuario);
-        await _context.SaveChangesAsync();
-        return usuario;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return usuario;
+        }
+        catch
+        {
+            _context.Entry(usuario).State = EntityState.Detached;
+
+            if (await EmailExisteAsync(usuario.Email))
+            {
+                throw new EmailJaCadastradoException();
+            }
+
+            throw;
+        }
     }
 
     public async Task<Usuario?> ObterPorEmailAsync(string email)
