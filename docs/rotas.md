@@ -2,7 +2,7 @@
 
 Planejamento das rotas antes da implementação. Cada rota lista o método, o caminho, o que faz, se exige token e os códigos de resposta esperados.
 
-Status: ✅ implementada · 📝 planejada
+Status: ✅ implementada · 📝 planejada · ❓ proposta, precisa de aprovação do grupo
 
 ## Autenticação
 
@@ -42,3 +42,22 @@ Cada série tem exercício, ordem, repetições alvo e carga sugerida. O 400 cob
 - repetições alvo fora de 1 a 100.
 
 Editar o treino não altera o que já foi registrado nas sessões.
+
+## Sessões
+
+| Método | Rota | Descrição | Token | Respostas | Status |
+|---|---|---|---|---|---|
+| POST | `/api/sessoes` | Inicia uma sessão a partir de um treino da usuária. Pode já trazer as séries executadas (carga e repetições reais) ou vir sem nenhuma | Sim | 201 criada, com header `Location` · 400 dados inválidos ou série que não é do treino · 401 sem token · 404 treino não existe ou é de outra usuária | 📝 |
+| GET | `/api/sessoes` | Lista as sessões da usuária logada | Sim | 200 lista (pode ser vazia) · 401 sem token | 📝 |
+| GET | `/api/sessoes/{id}` | Busca uma sessão da usuária, com as séries registradas e as não preenchidas | Sim | 200 sessão · 401 sem token · 404 não existe ou é de outra usuária | ❓ |
+| POST | `/api/sessoes/{id}/series` | Registra uma ou mais séries em uma sessão já iniciada (registro aos poucos) | Sim | 201 séries registradas · 400 dados inválidos ou série que não é do treino da sessão · 401 sem token · 404 sessão não existe ou é de outra usuária | ❓ |
+
+O 400 cobre:
+
+- série que não pertence ao treino da sessão;
+- carga negativa (zero é válido, para exercícios sem peso);
+- repetições fora de 1 a 100.
+
+Série não preenchida fica como não executada: não entra na maior carga nem no histórico.
+
+O registro guarda a carga e as repetições realmente feitas, separadas do plano. Se o treino mudar depois (por exemplo, a carga sugerida passar de 40 kg para 50 kg), a sessão continua mostrando 40 kg.
