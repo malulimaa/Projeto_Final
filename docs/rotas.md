@@ -61,3 +61,25 @@ O 400 cobre:
 Série não preenchida fica como não executada: não entra na maior carga nem no histórico.
 
 O registro guarda a carga e as repetições realmente feitas, separadas do plano. Se o treino mudar depois (por exemplo, a carga sugerida passar de 40 kg para 50 kg), a sessão continua mostrando 40 kg.
+
+## Maior carga
+
+| Método | Rota | Descrição | Token | Respostas | Status |
+|---|---|---|---|---|---|
+| GET | `/api/exercicios/{id}/maior-carga` | Devolve a maior carga já registrada no exercício e a data em que foi feita | Sim | 200 carga e data · 200 com mensagem de que ainda não há registro ❓ · 401 sem token · 404 exercício não existe ou é de outra usuária | 📝 |
+
+- A maior carga vem só do que foi registrado nas sessões. O plano nunca entra na conta: plano de 60 kg com registro de 40 kg dá 40 kg.
+- Séries não preenchidas ficam de fora.
+- Exercício que nunca foi registrado: a API informa que ainda não há registro e nunca responde 0 kg.
+- Exemplo: registros de 40 kg (terça), 45 kg (quinta) e 42,5 kg (sábado) devolvem 45 kg, com a data de quinta.
+
+## Histórico por período (extra)
+
+Fora do MVP: só começa depois que o MVP estiver mergeado e a API publicada.
+
+| Método | Rota | Descrição | Token | Respostas | Status |
+|---|---|---|---|---|---|
+| GET | `/api/historico?inicio=&fim=&agrupamento=` | Agrupa as sessões da usuária entre `inicio` e `fim`, por `semana` ou `mes`. Para cada grupo: quantidade de sessões e maior carga registrada | Sim | 200 lista de grupos (pode ser vazia) · 400 data inválida, `inicio` depois de `fim` ou `agrupamento` diferente de `semana` e `mes` ❓ · 401 sem token | 📝 |
+
+- A semana começa na segunda-feira. O mês vai do dia 1 ao último dia.
+- Séries não preenchidas ficam de fora.
